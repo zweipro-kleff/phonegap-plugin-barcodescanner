@@ -656,7 +656,34 @@ parentViewController:(UIViewController*)parentViewController
     size_t offsetX = (width  - greyWidth) / 2;
     size_t offsetY = (height - greyWidth) / 2;
 
+    size_t maxC = 0;
+    size_t minC = 255;
+
     // pixel-by-pixel ...
+    for (size_t i=0; i<greyWidth; i++) {
+        for (size_t j=0; j<greyWidth; j++) {
+
+            size_t baseOffset = (j+offsetY)*bytesPerRow + (i + offsetX)*4;
+
+            // convert from color to grayscale
+            // http://en.wikipedia.org/wiki/Grayscale#Converting_color_to_grayscale
+            size_t value =
+                        0.11 * baseAddress[baseOffset] +
+                        0.59 * baseAddress[baseOffset + 1] +
+                        0.30 * baseAddress[baseOffset + 2];
+
+            if(value > maxC) {
+                maxC = value;
+            }
+
+            if(value < minC) {
+                minC = value;
+            }
+        }
+    }
+
+    double factor = 255 / (maxC - minC);
+
     for (size_t i=0; i<greyWidth; i++) {
         for (size_t j=0; j<greyWidth; j++) {
             // i,j are the coordinates from the sample buffer
@@ -669,13 +696,17 @@ parentViewController:(UIViewController*)parentViewController
 
             // convert from color to grayscale
             // http://en.wikipedia.org/wiki/Grayscale#Converting_color_to_grayscale
-            size_t value = 0.11 * baseAddress[baseOffset] +
-            0.59 * baseAddress[baseOffset + 1] +
-            0.30 * baseAddress[baseOffset + 2];
+            size_t value =
+                        0.11 * baseAddress[baseOffset] +
+                        0.59 * baseAddress[baseOffset + 1] +
+                        0.30 * baseAddress[baseOffset + 2];
+
+            value = (value - minC) * factor;
 
             greyData[nj*greyWidth + ni] = value;
         }
     }
+
 
     CVPixelBufferUnlockBaseAddress(imageBuffer,0);
 

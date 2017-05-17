@@ -633,6 +633,8 @@ parentViewController:(UIViewController*)parentViewController
 // zxing needs.
 //--------------------------------------------------------------------------
 - (zxing::Ref<zxing::LuminanceSource>) getLuminanceSourceFromSample:(CMSampleBufferRef)sampleBuffer imageBytes:(uint8_t**)ptr {
+    NSLog(@"Hello");
+
     CVImageBufferRef imageBuffer = CMSampleBufferGetImageBuffer(sampleBuffer);
     CVPixelBufferLockBaseAddress(imageBuffer, 0);
 
@@ -683,6 +685,7 @@ parentViewController:(UIViewController*)parentViewController
     }
 
     double factor = 255 / (maxC - minC);
+    NSLog(@"Value of factor = %@", factor);
 
     for (size_t i=0; i<greyWidth; i++) {
         for (size_t j=0; j<greyWidth; j++) {
@@ -702,6 +705,11 @@ parentViewController:(UIViewController*)parentViewController
                         0.30 * baseAddress[baseOffset + 2];
 
             value = (value - minC) * factor;
+            if(value < (255/2)) {
+                value = 0;
+            } else {
+                value = 255;
+            }
 
             greyData[nj*greyWidth + ni] = value;
         }
